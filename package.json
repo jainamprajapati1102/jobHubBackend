@@ -23,7 +23,7 @@
     "passport": "^0.6.0",
     "passport-google-oauth20": "^2.0.0",
     "path": "^0.12.7",
-    "razorpay": "^0.0.0"
+    "razorpay": "^2.8.6"
   },
   "name": "server",
   "version": "1.0.0",

@@ -26,7 +26,8 @@ app.use(cookie);
 const nodemailer = require("nodemailer");
 const Tbl_industry = require("../models/industrySchema")
 const csv = require("fast-csv")
-const Razorpay = require("razorpay")
+// const Razorpay = require("razorpay")
+const Razorpay = require('razorpay')
 const crypto = require("crypto")
 const tbl_payment = require("../models/PaymentSchema")
 var GoogleStrategy = require('passport-google-oauth20').Strategy;
