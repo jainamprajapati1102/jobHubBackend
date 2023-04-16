@@ -10,8 +10,6 @@ dotenv.config({ path: "./config.env" });
 // const bcrypt = require("bcrypt");
 const port = process.env.PORT || 5000;
 require("./db/conn");
-// const routs = require("../server/rotute/auth")
-const routs = require("./rotute/auth")
 const routs = require("./rotute/auth")
 app.use('/public', express.static('public'))
 app.use('/files', express.static('./public/files'))
