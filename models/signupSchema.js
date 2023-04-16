@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
-const { type } = require("@testing-library/user-event/dist/type");
 // const dotenv = require("dotenv");
 // dotenv.config({ path: './confi.env' });
 const jsRegisterSchema = new mongoose.Schema({
