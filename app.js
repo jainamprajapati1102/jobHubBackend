@@ -9,8 +9,10 @@ const dotenv = require("dotenv");
 dotenv.config({ path: "./config.env" });
 // const bcrypt = require("bcrypt");
 const port = process.env.PORT || 5000;
-require("../server/db/conn");
-const routs = require("../server/rotute/auth")
+require("./db/conn");
+// const routs = require("../server/rotute/auth")
+const routs = require("./rotute/auth")
+const routs = require("./rotute/auth")
 app.use('/public', express.static('public'))
 app.use('/files', express.static('./public/files'))
 const cookieSession = require("cookie-session")
@@ -21,7 +23,8 @@ const passport = require("passport")
 const pdf = require('html-pdf')
 const pdfTemplate = require('./documentjs/document')
 // const PaymentReceiptTemplate = require('../')
-require("../server/models/googleUserSchema")
+// require("../server/models/googleUserSchema")
+require("./models/googleUserSchema")
 app.use(
     cookieSession({
         maxAge: 30 * 24 * 60 * 60 * 1000,
