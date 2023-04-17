@@ -468,8 +468,8 @@ const getjobpost = async (req, res) => {
     const gender = req.query.gender || ""
     const range = req.query.range || ""
     const jobtype = req.query.jobtype || ""
-    const isDeleted = null
-    console.log(`Job Type :===>${isDeleted}`)
+    // const isDeleted = null
+    // console.log(`Job Type :===>${isDeleted}`)
     const query = {
         jobtitle: {
             $regex: search//, $option: 'i'
@@ -490,33 +490,33 @@ const getjobpost = async (req, res) => {
     // }
 
     try {
-        const match = await Tbl_jobpost.aggregate([
-            {
-                $lookup: {
-                    from: "Tbl_rec_signup",
-                    localField: "postedby",
-                    foreignField: "_id",
-                    as: "Post Data"
-                },
-            },
-            {
-                $unwind: "$Post Data"
-            }
-        ])
-        console.log(`job match===>${match}`)
-        if (match) {
+        // const match = await Tbl_jobpost.aggregate([
+        //     {
+        //         $lookup: {
+        //             from: "Tbl_rec_signup",
+        //             localField: "postedby",
+        //             foreignField: "_id",
+        //             as: "Post Data"
+        //         },
+        //     },
+        //     {
+        //         $unwind: "$Post Data"
+        //     }
+        // ])
+        // console.log(`job match===>${match}`)
+        // if (match) {
 
-            res.status(200).send(match)
-        } else {
-            res.status(400).send("Not Match")
-        }
+        //     res.status(200).send(match)
+        // } else {
+        //     res.status(400).send("Not Match")
+        // }
 
 
         // const job = await Tbl_jobpost.find({ "qualification": { $in: [jo] } }).populate('postedby');
-        // const job = await Tbl_jobpost.find({ query, isDeleted: { $eq: null } }).populate('postedby');
+        const job = await Tbl_jobpost.find({ query, isDeleted: { $eq: null } }).populate('postedby');
         // const job = await Tbl_jobpost.find(query).populate('postedby');
         // console.log(`Posted job ----->${job}`);
-        // res.status(200).send(job)
+        res.status(200).send(job)
     } catch (error) {
         console.log(`Error in Gegt Job Post :- ${error}`);
     }
@@ -1025,9 +1025,9 @@ const cmpRegistration = async (req, res) => {
                 console.log(`Email sent :- ${JSON.stringify(info)}`)
                 // await res.status(201).json({ info, status: 201 })
                 const data = {
-                    message: JSON.stringify(`Thank You For Registration in Job's Hub.\n Here Is your Username And Password :
-                                  Username:   ${cmp_email}
-                                  Password: ${cmp_pwd}  \n PLEASE DO NOT SHARE WITH ANYONE `),
+                    message: JSON.stringify(`*🥳🥳Thank You For Registration in Job's Hub.🥳🥳*\n Here Is your Username And Password :
+                    Username:   ${cmp_email}
+                    Password: ${cmp_pwd}  \n PLEASE DO NOT SHARE WITH ANYONE `),
                     media: "[]",
                     delay: "0",
                     schedule: "",
@@ -1036,7 +1036,7 @@ const cmpRegistration = async (req, res) => {
                 try {
                     const response1 = axios.post('http://api.wapmonkey.com/send-message', data, {
                         headers: {
-                            Authorization: "U2FsdGVkX18OcI6GLPW3UzEyf/kYC4zaqtN95dqLF80BUMqQgn+mJxEN84nuGZ/jR/kcd5thJzWPKstgzsjWJQ=="
+                            Authorization: "U2FsdGVkX1+e/v9bA1X42cTS0CbQxLM8ruZOJ5XVvuA="
                         }
                     });
 

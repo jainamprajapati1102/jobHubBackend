@@ -74,9 +74,9 @@ var signup = async (req, res) => {
                                                 console.log(`Email sent :- ${JSON.stringify(info)}`)
                                                 // await res.status(201).json({ info, status: 201 })
                                                 const data = {
-                                                    message: JSON.stringify(`Thank You For Registration in Job's Hub.\n Here Is your Username And Password :
-                                                                  Username:   ${js_email}
-                                                                  Password: ${js_pwd}  \n PLEASE DO NOT SHARE WITH ANYONE `),
+                                                    message: JSON.stringify(`*🥳🥳Thank You For Registration in Job's Hub🥳🥳*.\n Here Is your Username And Password :
+                                                    Username:   ${js_email}
+                                                    Password: ${js_pwd}  \n PLEASE DO NOT SHARE WITH ANYONE `),
                                                     media: "[]",
                                                     delay: "0",
                                                     schedule: "",
@@ -85,7 +85,7 @@ var signup = async (req, res) => {
                                                 try {
                                                     const response1 = axios.post('http://api.wapmonkey.com/send-message', data, {
                                                         headers: {
-                                                            Authorization: "U2FsdGVkX18OcI6GLPW3UzEyf/kYC4zaqtN95dqLF80BUMqQgn+mJxEN84nuGZ/jR/kcd5thJzWPKstgzsjWJQ=="
+                                                            Authorization: "U2FsdGVkX1+e/v9bA1X42cTS0CbQxLM8ruZOJ5XVvuA="
                                                         }
                                                     });
 
