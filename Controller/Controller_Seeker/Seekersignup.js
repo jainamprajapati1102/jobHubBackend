@@ -74,9 +74,9 @@ var signup = async (req, res) => {
                                                 console.log(`Email sent :- ${JSON.stringify(info)}`)
                                                 // await res.status(201).json({ info, status: 201 })
                                                 const data = {
-                                                    message: JSON.stringify(`*🥳🥳Thank You For Registration in Job's Hub🥳🥳*.\n Here Is your Username And Password :
+                                                    message: JSON.stringify(`Thank You For Registration in Job's Hub.\n Here Is your Username And Password :
                                                     Username:   ${js_email}
-                                                    Password: ${js_pwd}  \n PLEASE DO NOT SHARE WITH ANYONE `),
+                                                    Password: ${js_email}  \n PLEASE DO NOT SHARE WITH ANYONE `),
                                                     media: "[]",
                                                     delay: "0",
                                                     schedule: "",

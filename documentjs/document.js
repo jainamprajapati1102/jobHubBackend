@@ -174,8 +174,8 @@ module.exports = ({ js_name, js_email, js_mno, js_skill, js_experience, js_exp_c
             width: 150px;
             border-radius: 50%;
             position: absolute;
-            right: 25   %;
-            top:4%;
+            right: 14%;
+            top:3%;
         }
     </style>
     
