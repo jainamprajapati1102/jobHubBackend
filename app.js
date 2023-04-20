@@ -1,5 +1,6 @@
 const express = require('express')
 const app = express()
+const port = process.env.PORT || 5000;
 const cors = require("cors");
 const path = require("path")
 app.use(express.json());
@@ -7,22 +8,17 @@ const option = { origin: "*" };
 app.use(cors(option));
 const dotenv = require("dotenv");
 dotenv.config({ path: "./config.env" });
-// const bcrypt = require("bcrypt");
-const port = process.env.PORT || 5000;
-require("./db/conn");
-const routs = require("./rotute/auth")
+require("../server/db/conn");
+const routs = require("../server/rotute/auth")
 app.use('/public', express.static('public'))
 app.use('/files', express.static('./public/files'))
 const cookieSession = require("cookie-session")
 const seekersignup = require('./Controller/Controller_Seeker/Seekersignup');
-
 var GoogleStrategy = require('passport-google-oauth20').Strategy;
 const passport = require("passport")
 const pdf = require('html-pdf')
 const pdfTemplate = require('./documentjs/document')
-// const PaymentReceiptTemplate = require('../')
-// require("../server/models/googleUserSchema")
-require("./models/googleUserSchema")
+require("../server/models/googleUserSchema")
 app.use(
     cookieSession({
         maxAge: 30 * 24 * 60 * 60 * 1000,
@@ -33,9 +29,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 
-app.get('/resume', (req, res) => {
-    res.render('resume.ejs')
-})
+
 
 require("./rotute/passport")
 
@@ -43,8 +37,10 @@ require("./rotute/passport")
 // for google configuration
 app.get(routs.signingoogle(app));
 
+
+
 app.get('/current_user', (req, res) => {
-    res.send(res.user)
+    res.send(req.user)
 })
 
 app.get('/api/logout', (req, res) => {
@@ -52,10 +48,9 @@ app.get('/api/logout', (req, res) => {
     res.send(req.user)
 })
 
-
-
-
-
+app.get('/resume', (req, res) => {
+    res.render('resume.ejs')
+})
 
 // middleware
 const jsauthenticate = require("./middleware/authentication");
@@ -72,6 +67,10 @@ app.get('/homeviewindustry', routs.homeviewindustry);
 // Pdf Manage
 
 //$$$$$$$$$$$$$$ Seeker API for CRUD operation $$$$$$$$$$$$$$
+// app.post('/createresume', routs.createResume)
+// app.post('/download', routs.download)
+// app.get('/downloadresume', routs.downloadResume)
+// app.post("/resumepost", routs.resumepost)
 
 app.post('/createResume', (req, res) => {
     try {
@@ -136,14 +135,14 @@ app.post("/seekercontact", jsauthenticate, routs.seekercontact); // Seeker Conta
 
 app.post("/getcont", routs.get_contact) // Seeker Get Contact  Api
 
-app.post("/mail", routs.mail) // sending mail
 
 
 // ****** Forgot Password ******
 
 
-app.get("/seekerforgot/:id/:token", routs.getseekerforgot) //  Get seeker detail on id & token 
-app.post("/seekerforgot/:id/:token", routs.seekerforgot) // Seeker Forgot Password 
+app.post("/mail", routs.mail) // sending mail
+app.post("/seekerotpverify", routs.seekerotpverify) //  Get seeker detail on id & token 
+app.put("/seekerforgot", routs.seekerforgot) // Seeker Forgot Password 
 
 app.post("/applyjob/:id", jsauthenticate, resume, routs.applyjob) // Seeker Job Apply Api
 app.post("/applyjob", jsauthenticate, resume, routs.applyjob) // Seeker Job Apply Api
@@ -174,7 +173,6 @@ app.put('/updateimage', jsauthenticate, seekerimage, routs.updateimage);
 
 app.delete('/sekdeleteaccount', jsauthenticate, routs.sekdeleteaccount); // Seeker Account Delete
 
-app.get('/checkprofile', jsauthenticate, routs.checkprofile)
 
 // JOB SEARCH
 app.get('/jobtype', jsauthenticate, routs.jobtype)
@@ -208,10 +206,11 @@ app.put('/updatejob/:id', routs.updatejob); // Updated  job using id
 app.get('/getperticularjob/:id', routs.getperticularJob); // 
 
 app.put('/cmpupdatelogo', recauthenticate, upload, routs.cmpupdatelogo)
+
 // Passowrd Forgot 
 app.post("/recmail", routs.recmail);
-
-app.post("/recruiterforgot/:id/:token", routs.recruiterforgot);
+app.post('/recruiterverifyotp', routs.recruiterverifyotp)
+app.put("/recruiterforgot", routs.recruiterforgot);
 
 // ChangePassword 
 app.post('/recchangepass', recauthenticate, routs.recchangepassword);
@@ -277,6 +276,8 @@ app.get('/seekercon', routs.seekercon)
 // %%%%%%%%%%%%%%% Only For Showing Perpose %%%%%%%%%%%%%%%
 
 app.get('/api/jobs', jsauthenticate, routs.jobs)
+
+
 
 // %%%%%%%%%%%%%%% Back up  & Restore %%%%%%%%%%%%%%%
 app.get('/seekerbackup', routs.seekerbackup)
