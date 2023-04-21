@@ -28,7 +28,6 @@ const csv = require("fast-csv")
 const Razorpay = require("razorpay")
 const crypto = require("crypto")
 const tbl_payment = require("../models/PaymentSchema")
-var GoogleStrategy = require('passport-google-oauth20').Strategy;
 const passport = require("passport")
 const Tbl_admin = require("../models/adminSchema")
 const Otp = require("../models/otp")
@@ -90,23 +89,7 @@ var seekerbackup = async (req, res) => {
 }
 
 // Special Case Try 
-var signingoogle = (app) => {
-    app.get("/auth/google/callback",
-        passport.authenticate('google', {
-            successRedirect: "http://localhost:3000/seekerhome",
-            failureRedirect: "/login/failure"
-        },
-            // (err, res) => {
-            //     if (res.existuser) {
-            //         // res.status(200).send({ user: existuser })
-            //     } else {
-            //         // res.status(200).send({ newuser })
-            //     }
-            // }
-        ));
-    app.get('/auth/google',
-        passport.authenticate('google', { scope: ['profile', 'email'] }));
-}
+
 
 
 var seekercontact = async (req, res) => {
@@ -416,7 +399,6 @@ var get_contact = async (req, res) => {
 
 
 const getjobpost = async (req, res) => {
-    const jo = req.user.js_quli || ""
     const search = req.query.search || ""
     const gender = req.query.gender || ""
     // const range = req.query.range || ""
@@ -977,12 +959,17 @@ const cmpLogin = async (req, res) => {
 const recdeleteaccount = async (req, res) => {
     try {
         const id = req.user._id
+        console.log(req.body);
         const match = await Tbl_rec_signup.findById({ _id: id });
+        console.log("matched ", match)
         if (match) {
-            const passMatch = await bcrypt.compare(req.body.rec_pwd, match.cmp_pwd);
+            const passMatch = await bcrypt.compare(req.body, match.cmp_pwd);
+            console.log(passMatch)
             if (passMatch) {
                 const recdel = await Tbl_rec_signup.findByIdAndDelete({ _id: id });
-                recdel.save()
+                const recpost = await Tbl_jobpost.findOneAndDelete({ postedby: id })
+                const reccon = await tbl_rec_contact.findOneAndDelete({ rec_id: id })
+                const review = await Tbl_rec_review.findOneAndDelete({ recruiter_id: id })
                 res.status(201).send({ msg: "Recruiter Account Deleted" })
             } else {
                 res.status(400).send("Password Not Match")
@@ -1039,7 +1026,9 @@ const checkpayment = async (req, res) => {
 // 10/3/2022
 const jobpost = async (req, res) => {
     try {
+        console.log('rec is ', req.user.id)
         const data = await tbl_payment.findOne({ paymentby: req.user.id });
+        console.log("paymetn", data)
         const { jobtitle, gender, designation, salaryrange, vacancy, experience, jobtype, qualification, degree, skill, languageknown, interviewtype, description } = req.body;
         if (jobtitle && gender && designation && salaryrange && vacancy && experience && jobtype && qualification && skill && languageknown && interviewtype && description && degree) {
             if (data.packagename == "PLATINUM" && data.jobpostcount >= 4) {
@@ -1557,8 +1546,9 @@ const order = (req, res) => {
 const verify = async (req, res) => {
     try {
         let body = req.body.razorpay_order_id + "|" + req.body.razorpay_payment_id;
-        var expectedSignature = crypto.createHmac("sha256", KEY_SECRET).update(body.toString()).digest('hex');
+        var expectedSignature = crypto.createHmac("sha256", process.env.KEY_SECRET).update(body.toString()).digest('hex');
         if (expectedSignature === req.body.razorpay_signature) {
+            console.log('rec id from the payment ', req.user.id)
             user = await tbl_payment.findOne({ paymentby: req.user.id });
             if (user) {
                 const result = await tbl_payment.findOneAndUpdate({
@@ -2010,7 +2000,7 @@ module.exports = {
 
     // job searh
     jobtype, location, jobs,
-    signingoogle, getseekercon,
+    getseekercon,
     homeviewindustry, totalrecruiterlist,
     totalseekerlist, payment,
     // Admin Side
