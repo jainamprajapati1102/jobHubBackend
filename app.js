@@ -8,8 +8,8 @@ const option = { origin: "*" };
 app.use(cors(option));
 const dotenv = require("dotenv");
 dotenv.config({ path: "./config.env" });
-require("../server/db/conn");
-const routs = require("../server/rotute/auth")
+require("./db/conn");
+const routs = require("./rotute/auth")
 app.use('/public', express.static('public'))
 app.use('/files', express.static('./public/files'))
 const cookieSession = require("cookie-session")
@@ -18,7 +18,8 @@ var GoogleStrategy = require('passport-google-oauth20').Strategy;
 const passport = require("passport")
 const pdf = require('html-pdf')
 const pdfTemplate = require('./documentjs/document')
-require("../server/models/googleUserSchema")
+// require("./models/googleUserSchema")
+require('./models/googleUserSchema')
 app.use(
     cookieSession({
         maxAge: 30 * 24 * 60 * 60 * 1000,
@@ -28,11 +29,7 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-
-
-
 require("./rotute/passport")
-
 
 // for google configuration
 app.get(routs.signingoogle(app));
