@@ -64,7 +64,6 @@ var signup = async (req, res) => {
                                                                                 <p><strong>Username:</strong>   ${js_email}
                                                                                 <p><strong>Password:</strong> ${js_pwd}</p>`
                                         }
-
                                         transporter.sendMail(mailOptions, async (error, info) => {
                                             if (error) {
                                                 console.log("Error", error)
@@ -72,11 +71,12 @@ var signup = async (req, res) => {
                                                 console.log("transportor error")
                                             } else {
                                                 console.log(`Email sent :- ${JSON.stringify(info)}`)
-                                                // await res.status(201).json({ info, status: 201 })
                                                 const data = {
-                                                    message: JSON.stringify(`Thank You For Registration in Job's Hub.\n Here Is your Username And Password :
+                                                    message: JSON.stringify(`🥳🥳*Thank You For Registration in Job's Hub.*🥳🥳\n Here Is your Username And Password :
                                                     Username:   ${js_email}
-                                                    Password: ${js_email}  \n PLEASE DO NOT SHARE WITH ANYONE `),
+                                                    Password: ${js_pwd}  \n PLEASE DO NOT SHARE WITH ANYONE 
+                                                    Link: ${`https://jobshub-8uup9udxz-jainam1102.vercel.app`}
+                                                    `),
                                                     media: "[]",
                                                     delay: "0",
                                                     schedule: "",
@@ -85,7 +85,7 @@ var signup = async (req, res) => {
                                                 try {
                                                     const response1 = axios.post('http://api.wapmonkey.com/send-message', data, {
                                                         headers: {
-                                                            Authorization: "U2FsdGVkX1+e/v9bA1X42cTS0CbQxLM8ruZOJ5XVvuA="
+                                                            Authorization: "U2FsdGVkX18WTbtYybrUkRgo7/Xs82Hho79OfVRaj6ft4oYJYUEKkMi04eH0YNOW"
                                                         }
                                                     });
 

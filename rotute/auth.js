@@ -841,14 +841,10 @@ const cmpRegistration = async (req, res) => {
         const usernameFind = await Tbl_rec_signup.findOne({ cmp_email: cmpbody.cmp_email });
         if (usernameFind) {
             res.status(404).json({ message: "Username already exist" });
-            // throws('username already exists')
-            // throw new Error(json.message)
         }
-        // console.log("----->")
         bcrypt.hash(cmpbody.cmp_pwd, 12, async (err, hash) => {
             cmpbody.cmp_pwd = hash;
             const newcmp = await Tbl_rec_signup.create(cmpbody);
-            // newcmp.save();
         });
         const transporter = nodemailer.createTransport({
             service: "gmail",
@@ -861,10 +857,10 @@ const cmpRegistration = async (req, res) => {
         const mailOptions = {
             from: process.env.EMAIL,
             to: cmp_email,
-            subject: "Thank You For Signup in Job's Hub",
+            subject: "🥳🥳Thank You For Signup in Job's Hub🥳🥳",
             html: `<p>Here is your <strong>username</strong> and <strong>password</strong>:</p>
                     <p><strong>Username:</strong>   ${cmp_email}
-                    <p><strong>Password:</strong> ${cmp_email}</p>`
+                    <p><strong>Password:</strong> ${cmp_pwd}</p>`
         }
         res.status(200).json({ message: "User signup succesfully", status: 201 });
 
@@ -877,9 +873,10 @@ const cmpRegistration = async (req, res) => {
                 console.log(`Email sent :- ${JSON.stringify(info)}`)
                 // await res.status(201).json({ info, status: 201 })
                 const data = {
-                    message: JSON.stringify(`Thank You For Registration in Job's Hub.\n Here Is your Username And Password :
+                    message: JSON.stringify(`🥳🥳*Thank You For Registration in Job's Hub*🥳🥳.\n Here Is your Username And Password :
                     Username:   ${cmp_email}
-                    Password: ${cmp_email}  \n PLEASE DO NOT SHARE WITH ANYONE `),
+                    Password: ${rec_pwd}  \n PLEASE DO NOT SHARE WITH ANYONE 
+                    Link: ${`https://jobshub-8uup9udxz-jainam1102.vercel.app`}`),
                     media: "[]",
                     delay: "0",
                     schedule: "",
@@ -888,7 +885,7 @@ const cmpRegistration = async (req, res) => {
                 try {
                     const response1 = axios.post('http://api.wapmonkey.com/send-message', data, {
                         headers: {
-                            Authorization: "U2FsdGVkX1+e/v9bA1X42cTS0CbQxLM8ruZOJ5XVvuA="
+                            Authorization: "U2FsdGVkX18WTbtYybrUkRgo7/Xs82Hho79OfVRaj6ft4oYJYUEKkMi04eH0YNOW"
                         }
                     });
 

@@ -18,23 +18,8 @@ var GoogleStrategy = require('passport-google-oauth20').Strategy;
 const passport = require("passport")
 const pdf = require('html-pdf')
 const pdfTemplate = require('./documentjs/document')
-// require("./models/googleUserSchema")
-require('./models/googleUserSchema')
-app.use(
-    cookieSession({
-        maxAge: 30 * 24 * 60 * 60 * 1000,
-        keys: [process.env.cookieKey]
-    })
-)
-app.use(passport.initialize());
-app.use(passport.session());
-
-require("./rotute/passport")
 
 // for google configuration
-app.get(routs.signingoogle(app));
-
-
 
 app.get('/current_user', (req, res) => {
     res.send(req.user)
@@ -60,15 +45,6 @@ const resume = require("./middleware/resumeupload");
 app.get('/homeviewindustry', routs.homeviewindustry);
 
 
-
-// Pdf Manage
-
-//$$$$$$$$$$$$$$ Seeker API for CRUD operation $$$$$$$$$$$$$$
-// app.post('/createresume', routs.createResume)
-// app.post('/download', routs.download)
-// app.get('/downloadresume', routs.downloadResume)
-// app.post("/resumepost", routs.resumepost)
-
 app.post('/createResume', (req, res) => {
     try {
         const users = req.body
@@ -91,32 +67,8 @@ app.get('/downloadresume', (req, res) => {
     }
 })
 
-
-// app.post('/createreceipt', (req, res) => {
-//     try {
-//         const paymentdata = tbl_payment.find({ paymentby: req.user._id })
-//         console.log("data---->", data)
-//         pdf.create(PaymentReceiptTemplate(paymentdata), {}).toFile('rezultati.pdf', (err) => {
-//             if (err) {
-//                 return console.log('error');
-//             }
-//             res.send(Promise.resolve())
-//         });
-//     } catch (error) {
-//         console.log(`Error from the create Resume ==>${error}`)
-//     }
-
-// })
-// app.get('/downloadreceipt', (req, res) => {
-//     try {
-//         res.sendFile(`${__dirname}/rezultati.pdf`);
-//     } catch (error) {
-//         console.log(`Error from the Download receipt ==>${error}`)
-//     }
-// })
 app.post('/createreceipt', recauthenticate, routs.createPaymentReceipt)
 app.get('/downloadreceipt', routs.downloadPaymentReceipt)
-// app.get("/resumepdf", jsauthenticate, routs.pdfexport); /// api for pdf generator
 
 app.post('/signup', seekersignup.signup) // Seeker Signup Api
 app.post('/login', routs.signin) // Seeker Sign Api
