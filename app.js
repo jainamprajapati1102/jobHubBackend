@@ -8,8 +8,8 @@ const option = { origin: "*" };
 app.use(cors(option));
 const dotenv = require("dotenv");
 dotenv.config({ path: "./config.env" });
-require("../server/db/conn");
-const routs = require("../server/rotute/auth")
+require("./db/conn");
+const routs = require("./rotute/auth")
 app.use('/public', express.static('public'))
 app.use('/files', express.static('./public/files'))
 const cookieSession = require("cookie-session")
