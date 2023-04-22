@@ -9,6 +9,7 @@ const jsRegisterSchema = new mongoose.Schema({
     js_pwd: { type: String, require: true, trim: true },
     js_mno: { type: Number, require: true, trim: true },
     js_gender: { type: String, require: true, trim: true },
+    js_address: { type: String, require: true, trim: true },
     js_quli: { type: String, require: true, trim: true },
     js_skill: { type: String, require: true, trim: true, default: null },
     js_dob: { type: Date },
@@ -26,16 +27,5 @@ const jsRegisterSchema = new mongoose.Schema({
 
 })
 
-// jsRegisterSchema.methods.generateToken = async function () {
-//     try {
-//         let token = jwt.sign({ _id: this._id }, process.env.SECRETE_KEY)
-//         this.token = (token);
-//         await this.save();
-//         // console.log(token)
-//         return token
-//     } catch (er) {
-//         console.log(er);
-//     }
-// }
 const Tbl_js_signup = mongoose.model("Tbl_js_signup", jsRegisterSchema);
 module.exports = Tbl_js_signup;

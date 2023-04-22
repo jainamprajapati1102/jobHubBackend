@@ -1770,10 +1770,13 @@ var addindustry = async (req, res) => {
         const { ind_name } = req.body;
         if (ind_name) {
             const match = await Tbl_industry.findOne({ ind_name });
-            if (match) res.send("Industry Already Available");
-            const data = await Tbl_industry.create({ ind_name: req.body.ind_name })
-            if (data) res.send({ status: 200, msg: "Industry Added Successful" })
-            else res.send({ status: 400, error: "Industry Not Added" })
+            if (match) {
+                res.send({ status: 101, msg: "Industry Already Available" });
+            } else {
+                const data = await Tbl_industry.create({ ind_name: req.body.ind_name })
+                if (data) res.send({ status: 200, msg: "Industry Added Successful" })
+                else res.send({ status: 400, error: "Industry Not Added" })
+            }
         } else res.send({ status: 400, error: "All Fields Required" })
     } catch (error) {
         console.log(`Error in the industry manage ${error}`);
