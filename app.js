@@ -8,8 +8,8 @@ const option = { origin: "*" };
 app.use(cors(option));
 const dotenv = require("dotenv");
 dotenv.config({ path: "./config.env" });
-require("./db/conn");
-const routs = require("./rotute/auth")
+require("../server/db/conn");
+const routs = require("../server/rotute/auth")
 app.use('/public', express.static('public'))
 app.use('/files', express.static('./public/files'))
 const cookieSession = require("cookie-session")
@@ -18,17 +18,6 @@ var GoogleStrategy = require('passport-google-oauth20').Strategy;
 const passport = require("passport")
 const pdf = require('html-pdf')
 const pdfTemplate = require('./documentjs/document')
-
-// for google configuration
-
-app.get('/current_user', (req, res) => {
-    res.send(req.user)
-})
-
-app.get('/api/logout', (req, res) => {
-    req.logout();
-    res.send(req.user)
-})
 
 app.get('/resume', (req, res) => {
     res.render('resume.ejs')
@@ -44,6 +33,15 @@ const resume = require("./middleware/resumeupload");
 // view industry on lending page 
 app.get('/homeviewindustry', routs.homeviewindustry);
 
+
+
+// Pdf Manage
+
+//$$$$$$$$$$$$$$ Seeker API for CRUD operation $$$$$$$$$$$$$$
+// app.post('/createresume', routs.createResume)
+// app.post('/download', routs.download)
+// app.get('/downloadresume', routs.downloadResume)
+// app.post("/resumepost", routs.resumepost)
 
 app.post('/createResume', (req, res) => {
     try {
@@ -69,7 +67,6 @@ app.get('/downloadresume', (req, res) => {
 
 app.post('/createreceipt', recauthenticate, routs.createPaymentReceipt)
 app.get('/downloadreceipt', routs.downloadPaymentReceipt)
-
 app.post('/signup', seekersignup.signup) // Seeker Signup Api
 app.post('/login', routs.signin) // Seeker Sign Api
 app.put('/updateprofile', jsauthenticate, routs.updateprofile)  // Seeker Update Profile Api
@@ -176,7 +173,7 @@ app.get('/acceptlist', recauthenticate, routs.AcceptUserList);
 
 app.get('/rejectlist', recauthenticate, routs.RejectUserList)
 
-app.get('/exportcsv', routs.exportcsv)
+app.get('/exportcsv/:token', routs.exportcsv)
 
 app.post('/order', routs.order)
 
@@ -190,9 +187,6 @@ app.put('/updaterestorejobpost/:id', recauthenticate, routs.updaterestorejobpost
 
 app.get('/getrecruiterreview', recauthenticate, routs.getrecruiterreview)  // Seeker Update Profile Api
 app.get('/checkpayment', recauthenticate, routs.checkpayment)  // Seeker Update Profile Api
-
-
-
 
 //$$$$$$$$$$$$$$$$$  ADMIN SIDE API  $$$$$$$$$$$$$$$$$
 app.get('/recruiterlist', routs.recruiterlist);
@@ -230,7 +224,6 @@ app.get('/api/jobs', jsauthenticate, routs.jobs)
 
 // %%%%%%%%%%%%%%% Back up  & Restore %%%%%%%%%%%%%%%
 app.get('/seekerbackup', routs.seekerbackup)
-
 
 app.get('/', (req, res) => res.send('Hello World!'))
 app.listen(port, () => console.log(`App listening on port ${port}!`))

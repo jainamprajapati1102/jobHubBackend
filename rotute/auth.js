@@ -447,7 +447,8 @@ const getjobpost = async (req, res) => {
 const getjobedu = async (req, res) => {
     try {
         const jo = req.user.js_quli
-        const job = await Tbl_jobpost.find({ "qualification": { $in: [jo] } }).populate('postedby');
+        console.log("degree", jo)
+        const job = await Tbl_jobpost.find({ "degree": { $in: [jo] } }).populate('postedby');
         // const job = await Tbl_jobpost.find({},{ $in: { "qualification": jo } }).populate('postedby');
         console.log(`Posted job ----->${job}`);
         res.status(200).send(job)
@@ -1017,54 +1018,97 @@ const checkpayment = async (req, res) => {
 }
 
 // 10/3/2022
+// const jobpost = async (req, res) => {
+//     try {
+//         console.log('rec is=====> ', req.user.id)
+//         const data = await tbl_payment.findOne({ paymentby: req.user.id });
+//         console.log("paymetn==-====>", data)
+//         const { jobtitle, gender, designation, salaryrange, vacancy, experience, jobtype, qualification, degree, skill, languageknown, interviewtype, description } = req.body;
+//         if (jobtitle && gender && designation && salaryrange && vacancy && experience && jobtype && qualification && skill && languageknown && interviewtype && description && degree) {
+//             if (data.packagename == "PLATINUM" && data.jobpostcount >= 4) {
+//                 res.send({ status: 400, msg: "your jobpost limit over in PLATINUM package" })
+//             }
+//             else if (data.packagename == "GOLD" && data.jobpostcount >= 2) {
+//                 res.send({ status: 400, msg: "your jobpost limit over in GOLD package" })
+//             }
+//             else if (data.packagename == "SILVER" && data.jobpostcount >= 1) {
+//                 res.send({ status: 400, msg: "your jobpost limit over in SILVER package" })
+//             }
+//             else {
+//                 const newJobPost = await Tbl_jobpost.create({
+//                     postedby: req.user._id,
+//                     jobtitle: jobtitle, 
+//                     gender: gender,
+//                     designation: designation,
+//                     degree: degree,
+//                     salaryrange: salaryrange,
+//                     vacancy: vacancy,
+//                     experience: experience,
+//                     jobtype: jobtype,
+//                     qualification: qualification,
+//                     skill: skill,
+//                     languageknown: languageknown,
+//                     interviewtype: interviewtype,
+//                     description: description
+//                 });
+//                 await tbl_payment.findOneAndUpdate({ paymentby: req.user.id }, { $inc: { jobpostcount: 1 } }, { new: true });
+//                 res.send({ status: 200, msg: "Job Post Successfully" })
+//             }
+
+//         } else {
+//             console.log("All Fileds Are Required!!")
+//             res.send("All Fileds Are Required!!")
+//         }
+
+//     } catch (error) {
+//         console.log(`Error in Job Post ${error}`)
+//         res.send(`something wrong`);
+//     }
+// }
+
 const jobpost = async (req, res) => {
     try {
-        console.log('rec is ', req.user.id)
         const data = await tbl_payment.findOne({ paymentby: req.user.id });
-        if (data) {
+        const { jobtitle, gender, designation, salaryrange, vacancy, experience, jobtype, qualification, degree, skill, languageknown, interviewtype, description } = req.body;
 
+        if (jobtitle && gender && designation && salaryrange && vacancy && experience && jobtype && qualification && skill && languageknown && interviewtype && description && degree) {
 
-            console.log("paymetn", data)
-            const { jobtitle, gender, designation, salaryrange, vacancy, experience, jobtype, qualification, degree, skill, languageknown, interviewtype, description } = req.body;
-            if (jobtitle && gender && designation && salaryrange && vacancy && experience && jobtype && qualification && skill && languageknown && interviewtype && description && degree) {
-                if (data.packagename == "PLATINUM" && data.jobpostcount >= 4) {
-                    res.send({ status: 400, msg: "your jobpost limit over in PLATINUM package" })
-                }
-                else if (data.packagename == "GOLD" && data.jobpostcount >= 2) {
-                    res.send({ status: 400, msg: "your jobpost limit over in GOLD package" })
-                }
-                else if (data.packagename == "SILVER" && data.jobpostcount >= 1) {
-                    res.send({ status: 400, msg: "your jobpost limit over in SILVER package" })
-                }
-                else {
-                    const newJobPost = await Tbl_jobpost.create({
-                        postedby: req.user._id,
-                        jobtitle: jobtitle,
-                        gender: gender,
-                        designation: designation,
-                        degree: degree,
-                        salaryrange: salaryrange,
-                        vacancy: vacancy,
-                        experience: experience,
-                        jobtype: jobtype,
-                        qualification: qualification,
-                        skill: skill,
-                        languageknown: languageknown,
-                        interviewtype: interviewtype,
-                        description: description
-                    });
-                    await newJobPost.save();
-                    await tbl_payment.findOneAndUpdate({ paymentby: req.user.id }, { $inc: { jobpostcount: 1 } }, { new: true });
-                    res.send({ status: 200, msg: "Job Post Successfully" })
-                }
-
-            } else {
-                console.log("All Fileds Are Required!!")
-                res.send("All Fileds Are Required!!")
+            if (data.packagename == "PLATINUM" && data.jobpostcount >= 4) {
+                res.send({ status: 400, msg: "your jobpost limit over in PLATINUM package" })
             }
+            else if (data.packagename == "GOLD" && data.jobpostcount >= 2) {
+                res.send({ status: 400, msg: "your jobpost limit over in GOLD package" })
+            }
+            else if (data.packagename == "SILVER" && data.jobpostcount >= 1) {
+                res.send({ status: 400, msg: "your jobpost limit over in SILVER package" })
+            }
+            else {
+                const newJobPost = await Tbl_jobpost.create({
+                    postedby: req.user._id,
+                    jobtitle: jobtitle,
+                    gender: gender,
+                    designation: designation,
+                    degree: degree,
+                    salaryrange: salaryrange,
+                    vacancy: vacancy,
+                    experience: experience,
+                    jobtype: jobtype,
+                    qualification: qualification,
+                    skill: skill,
+                    languageknown: languageknown,
+                    interviewtype: interviewtype,
+                    description: description
+                });
+                await tbl_payment.findOneAndUpdate({ paymentby: req.user.id }, { $inc: { jobpostcount: 1 } }, { new: true });
+                res.send({ status: 200, msg: "Job Post Successfully" })
+            }
+
         } else {
-            res.status(400).send({ status: 400, msg: "Please Purchase Any Subscription For Job Post" })
+            console.log("All Fileds Are Required!!")
+            res.send("All Fileds Are Required!!")
         }
+
+
     } catch (error) {
         console.log(`Error in Job Post ${error}`)
         res.send(`something wrong`);
@@ -1483,7 +1527,11 @@ var location = async (req, res) => {
 
 var exportcsv = async (req, res) => {
     try {
-        const result = await Tbl_jobapply.find({ accept: 1 }).populate("js_id");
+        const token = req.params.token
+        console.log("id from the export", token)
+        const id = jwt.verify(token, process.env.SECRETE_KEY);
+        console.log('id', id.cmpid)
+        const result = await Tbl_jobapply.find({ rec_id: id.cmpid }, { accept: 1 }).populate("js_id");
         const csvStream = csv.format({ headers: true })
         if (!fs.existsSync("public/files/export")) {
             if (!fs.existsSync("public/files")) {
@@ -1511,6 +1559,7 @@ var exportcsv = async (req, res) => {
         csvStream.end();
         writablestream.end();
     } catch (error) {
+        console.log("error fro the export csv catch", error)
         res.status(400).send({ err: `something is error =>>${error}` })
     }
 }
