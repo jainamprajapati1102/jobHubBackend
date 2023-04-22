@@ -401,24 +401,29 @@ var get_contact = async (req, res) => {
 const getjobpost = async (req, res) => {
     const search = req.query.search || ""
     const gender = req.query.gender || ""
-    // const range = req.query.range || ""
+    const salaryrange = req.query.salaryrange || ""
     const jobtype = req.query.jobtype || ""
-    const qualification = req.query.qualification || ""
     const isDeleted = true;
-    // console.log(`Job Type :===>${isDeleted}`)
+    const qualification = req.query.qualification || ""
+    const sort = req.query.sort || ""
+    console.log("salaRY RANGE ", salaryrange)
+    console.log("job type", jobtype)
+    // console.log("timming", JSON.stringify(sort))
+    console.log("timming", sort)
     const query = {
         isDeleted: true,
         jobtitle: {
             $regex: search//, $option: 'i'
         }
-        // jobtitle: { '$regex': new RegExp(search, "i").toString() }
     }
     if (gender) {
         query.gender = gender
     }
-    // if (range) {
-    //     query.range = range
-    // }
+
+    if (salaryrange) {
+        query.salaryrange = salaryrange
+    }
+
     if (jobtype) {
         query.jobtype = jobtype
     }
@@ -428,21 +433,11 @@ const getjobpost = async (req, res) => {
     }
 
     console.log(` querty stirng ===>${JSON.stringify(query)}`)
-    // if (isDeleted) {
-    //     query.isDeleted = isDeleted
-    // }
-
     try {
-        // const job = await Tbl_jobpost.find({ "qualification": { $in: [jo] } }).populate('postedby');
-        // const job = await Tbl_jobpost.find({ query, isDeleted: { $eq: null } }).populate('postedby');
-        // const job = await Tbl_jobpost.find(query).populate('postedby');
         console.log(query)
         const job = await Tbl_jobpost.find(
             query
         ).populate('postedby');
-
-
-        // console.log(`Posted job ----->${job}`);
         res.status(200).send(job)
     } catch (error) {
         console.log(`Error in Gegt Job Post :- ${error}`);
@@ -828,83 +823,82 @@ var cmpupdatelogo = async (req, res) => {
 
 const cmpRegistration = async (req, res) => {
     try {
-        const { cmp_email, cmp_pwd, cmp_name, rec_mno } = req.body
-        let cmpbody = req.body;
-        console.log(req.file)
-        cmpbody.cmp_logo = req.file.filename;
-        console.log(req.body)
-        console.log(cmpbody);
-
-        if (!cmpbody.cmp_name || !cmpbody.cmp_pwd || !cmpbody.cmp_email) {
-            return res.status(422).json({ error: "Please fill all the field" });
-        }
-        const usernameFind = await Tbl_rec_signup.findOne({ cmp_email: cmpbody.cmp_email });
-        if (usernameFind) {
-            res.status(404).json({ message: "Username already exist" });
-        }
-        bcrypt.hash(cmpbody.cmp_pwd, 12, async (err, hash) => {
-            cmpbody.cmp_pwd = hash;
-            const newcmp = await Tbl_rec_signup.create(cmpbody);
-        });
-        const transporter = nodemailer.createTransport({
-            service: "gmail",
-            auth: {
-                user: process.env.EMAIL,
-                pass: process.env.PASS
-            }
-        });
-
-        const mailOptions = {
-            from: process.env.EMAIL,
-            to: cmp_email,
-            subject: "🥳🥳Thank You For Signup in Job's Hub🥳🥳",
-            html: `<p>Here is your <strong>username</strong> and <strong>password</strong>:</p>
-                    <p><strong>Username:</strong>   ${cmp_email}
-                    <p><strong>Password:</strong> ${cmp_pwd}</p>`
-        }
-        res.status(200).json({ message: "User signup succesfully", status: 201 });
-
-        transporter.sendMail(mailOptions, async (error, info) => {
-            if (error) {
-                console.log("Error", error)
-                await res.status(401).json({ err: "error", status: 401 })
-                console.log("transportor error")
-            } else {
-                console.log(`Email sent :- ${JSON.stringify(info)}`)
-                // await res.status(201).json({ info, status: 201 })
-                const data = {
-                    message: JSON.stringify(`🥳🥳*Thank You For Registration in Job's Hub*🥳🥳.\n Here Is your Username And Password :
-                    Username:   ${cmp_email}
-                    Password: ${rec_pwd}  \n PLEASE DO NOT SHARE WITH ANYONE 
-                    Link: ${`https://jobshub-8uup9udxz-jainam1102.vercel.app`}`),
-                    media: "[]",
-                    delay: "0",
-                    schedule: "",
-                    numbers: `${rec_mno}`
-                };
-                try {
-                    const response1 = axios.post('http://api.wapmonkey.com/send-message', data, {
-                        headers: {
-                            Authorization: "U2FsdGVkX18WTbtYybrUkRgo7/Xs82Hho79OfVRaj6ft4oYJYUEKkMi04eH0YNOW"
+        const { cmp_name, cmp_pwd, rec_mno, cmp_email } = req.body
+        const cmp_logo = req.file.filename
+        console.log("logo", cmp_logo)
+        const userExist = await Tbl_rec_signup.findOne({ cmp_email })
+        if (userExist) {
+            res.status(400).send({ msg: "User Already Exist", status: 400 })
+        } else {
+            if (cmp_name && cmp_pwd && rec_mno && cmp_logo && cmp_email) {
+                const salt = await bcrypt.genSalt(12);
+                const secPass = await bcrypt.hash(cmp_pwd, salt)
+                const newUser = await Tbl_rec_signup.create({
+                    cmp_name: req.body.cmp_name,
+                    cmp_email: req.body.cmp_email,
+                    rec_mno: req.body.rec_mno,
+                    cmp_logo: cmp_logo,
+                    cmp_pwd: secPass,
+                })
+                if (newUser) {
+                    const transporter = nodemailer.createTransport({
+                        service: "gmail",
+                        auth: {
+                            user: process.env.EMAIL,
+                            pass: process.env.PASS
                         }
                     });
 
-                } catch (error) {
-                    console.error(error);
-                    throw new Error('Failed to send message');
+                    const mailOptions = {
+                        from: process.env.EMAIL,
+                        to: cmp_email,
+                        subject: "Thank You For Signup in Job's Hub",
+                        html: `<p>Thank for registration , welcome to Job's Hub. </p><br>
+                           Use Following credentails when prompted to log in:<br>
+                            <p><strong>Username:</strong>   ${cmp_email}<br>
+                           <p><strong>Password:</strong> ${cmp_pwd}</p> <br>
+                            Do not Share with Anyone, <br>if you have any Question about your account or any other matter , please contact on email: jobshub0514@gmail.com <br><br>
+                            Thank you again,<br>
+                            <b>Job's Hub</b>
+                  `
+                    }
+                    transporter.sendMail(mailOptions, async (error, info) => {
+                        if (error) {
+                            console.log("Error", error)
+                            await res.status(401).json({ err: "error", status: 401 })
+                            console.log("transportor error")
+                        } else {
+                            console.log(`Email sent :- ${JSON.stringify(info)}`)
+                            const data = {
+                                message: JSON.stringify(`Thank You For Registration in Job's Hub.\n Here Is your Username And Password :
+                            Username:   ${cmp_email}
+                            Password: ${cmp_pwd}  \n PLEASE DO NOT SHARE WITH ANYONE 
+                            Link: ${`https://jobshub-8uup9udxz-jainam1102.vercel.app`}
+                            `),
+                                media: "[]",
+                                delay: "0",
+                                schedule: "",
+                                numbers: `${rec_mno}`
+                            };
+                            try {
+                                const response1 = axios.post('http://api.wapmonkey.com/send-message', data, {
+                                    headers: {
+                                        Authorization: "U2FsdGVkX18WTbtYybrUkRgo7/Xs82Hho79OfVRaj6ft4oYJYUEKkMi04eH0YNOW"
+                                    }
+                                });
+
+                            } catch (error) {
+                                console.error(error);
+                                throw new Error('Failed to send message');
+                            }
+                        }
+                    })
+                    res.status(200).send({ status: 200, newUser, msg: " Inserted successfully..." });
                 }
             }
-        })
-
-
-
+        }
     } catch (error) {
-        let url = req.file.filename;
-        const imageUrl = `./public/uploads1/companylogo/${url}`;
-        fs.unlinkSync(imageUrl);
-        console.log("image url===>", imageUrl);
-        console.log(`error from the cmp registration ${error}`);
-        res.status(400).json({ error: "There is some error" });
+        console.log("Error fro the recruiter sign ujp ", error)
     }
 }
 
@@ -955,22 +949,22 @@ const cmpLogin = async (req, res) => {
 
 const recdeleteaccount = async (req, res) => {
     try {
-        const id = req.user._id
-        console.log(req.body);
-        const match = await Tbl_rec_signup.findById({ _id: id });
+        // const id = req.user._id
+        // console.log('rec delete id', id);
+        const match = await Tbl_rec_signup.findById({ _id: req.user._id });
         console.log("matched ", match)
         if (match) {
-            const passMatch = await bcrypt.compare(req.body, match.cmp_pwd);
-            console.log(passMatch)
-            if (passMatch) {
-                const recdel = await Tbl_rec_signup.findByIdAndDelete({ _id: id });
-                const recpost = await Tbl_jobpost.findOneAndDelete({ postedby: id })
-                const reccon = await tbl_rec_contact.findOneAndDelete({ rec_id: id })
-                const review = await Tbl_rec_review.findOneAndDelete({ recruiter_id: id })
-                res.status(201).send({ msg: "Recruiter Account Deleted" })
-            } else {
-                res.status(400).send("Password Not Match")
-            }
+            // const passMatch = await bcrypt.compare(req.body, match.cmp_pwd);
+            // console.log(passMatch)
+            // if (passMatch) {
+            const recdel = await Tbl_rec_signup.findByIdAndDelete({ _id: req.user._id });
+            const recpost = await Tbl_jobpost.findOneAndDelete({ postedby: req.user._id })
+            const reccon = await tbl_rec_contact.findOneAndDelete({ rec_id: req.user._id })
+            const review = await Tbl_rec_review.findOneAndDelete({ recruiter_id: req.user._id })
+            res.status(201).send({ msg: "Recruiter Account Deleted" })
+            // } else {
+            //     res.status(400).send("Password Not Match")
+            // }
         } else {
             res.status(400).send("User Not Exist ")
         }
@@ -1010,8 +1004,10 @@ const checkpayment = async (req, res) => {
         const id = req.user._id;
         const pay = await tbl_payment.findOne({ paymentby: id })
         const profile = await Tbl_rec_signup.findById({ _id: id })
-        if (pay && profile.employess != null) {
-            res.status(201).send({ status: 11 })
+        if (profile.employess == null) {
+            res.status(201).send({ status: 1 })
+        } else if (pay == null) {
+            res.status(201).send({ status: 2 })
         } else {
             res.status(401).send({ status: 0 })
         }
@@ -1025,45 +1021,50 @@ const jobpost = async (req, res) => {
     try {
         console.log('rec is ', req.user.id)
         const data = await tbl_payment.findOne({ paymentby: req.user.id });
-        console.log("paymetn", data)
-        const { jobtitle, gender, designation, salaryrange, vacancy, experience, jobtype, qualification, degree, skill, languageknown, interviewtype, description } = req.body;
-        if (jobtitle && gender && designation && salaryrange && vacancy && experience && jobtype && qualification && skill && languageknown && interviewtype && description && degree) {
-            if (data.packagename == "PLATINUM" && data.jobpostcount >= 4) {
-                res.send({ status: 400, msg: "your jobpost limit over in PLATINUM package" })
-            }
-            else if (data.packagename == "GOLD" && data.jobpostcount >= 2) {
-                res.send({ status: 400, msg: "your jobpost limit over in GOLD package" })
-            }
-            else if (data.packagename == "SILVER" && data.jobpostcount >= 1) {
-                res.send({ status: 400, msg: "your jobpost limit over in SILVER package" })
-            }
-            else {
-                const newJobPost = await Tbl_jobpost.create({
-                    postedby: req.user._id,
-                    jobtitle: jobtitle,
-                    gender: gender,
-                    designation: designation,
-                    degree: degree,
-                    salaryrange: salaryrange,
-                    vacancy: vacancy,
-                    experience: experience,
-                    jobtype: jobtype,
-                    qualification: qualification,
-                    skill: skill,
-                    languageknown: languageknown,
-                    interviewtype: interviewtype,
-                    description: description
-                });
-                await newJobPost.save();
-                await tbl_payment.findOneAndUpdate({ paymentby: req.user.id }, { $inc: { jobpostcount: 1 } }, { new: true });
-                res.send({ status: 200, msg: "Job Post Successfully" })
-            }
+        if (data) {
 
+
+            console.log("paymetn", data)
+            const { jobtitle, gender, designation, salaryrange, vacancy, experience, jobtype, qualification, degree, skill, languageknown, interviewtype, description } = req.body;
+            if (jobtitle && gender && designation && salaryrange && vacancy && experience && jobtype && qualification && skill && languageknown && interviewtype && description && degree) {
+                if (data.packagename == "PLATINUM" && data.jobpostcount >= 4) {
+                    res.send({ status: 400, msg: "your jobpost limit over in PLATINUM package" })
+                }
+                else if (data.packagename == "GOLD" && data.jobpostcount >= 2) {
+                    res.send({ status: 400, msg: "your jobpost limit over in GOLD package" })
+                }
+                else if (data.packagename == "SILVER" && data.jobpostcount >= 1) {
+                    res.send({ status: 400, msg: "your jobpost limit over in SILVER package" })
+                }
+                else {
+                    const newJobPost = await Tbl_jobpost.create({
+                        postedby: req.user._id,
+                        jobtitle: jobtitle,
+                        gender: gender,
+                        designation: designation,
+                        degree: degree,
+                        salaryrange: salaryrange,
+                        vacancy: vacancy,
+                        experience: experience,
+                        jobtype: jobtype,
+                        qualification: qualification,
+                        skill: skill,
+                        languageknown: languageknown,
+                        interviewtype: interviewtype,
+                        description: description
+                    });
+                    await newJobPost.save();
+                    await tbl_payment.findOneAndUpdate({ paymentby: req.user.id }, { $inc: { jobpostcount: 1 } }, { new: true });
+                    res.send({ status: 200, msg: "Job Post Successfully" })
+                }
+
+            } else {
+                console.log("All Fileds Are Required!!")
+                res.send("All Fileds Are Required!!")
+            }
         } else {
-            console.log("All Fileds Are Required!!")
-            res.send("All Fileds Are Required!!")
+            res.status(400).send({ status: 400, msg: "Please Purchase Any Subscription For Job Post" })
         }
-
     } catch (error) {
         console.log(`Error in Job Post ${error}`)
         res.send(`something wrong`);
@@ -1260,7 +1261,7 @@ var recruiterforgot = async (req, res) => {
 
             const updatepass = await Tbl_rec_signup.findOneAndUpdate(
                 { cmp_email: cmp_email },
-                { $set: { js_pwd: secPass } },
+                { $set: { cmp_pwd: secPass } },
                 { new: true }
             );
             await updatepass.save();
