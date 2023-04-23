@@ -12,10 +12,7 @@ const jobapplySchema = mongoose.Schema({
     resume: {
         type: String
     },
-    show: {
-        type: String,
-        Default: null
-    },
+    show: { type: Boolean, default: true },
     accept: 0
     ,
 }, { timestamps: true }

@@ -59,7 +59,6 @@ var seekerbackup = async (req, res) => {
                     as: "seeker_apply_data"
                 }
             },
-            // { $unwind: "$seeker_apply_data" },
             {
                 $lookup: {
                     from: "Tbl_js_review",
@@ -68,12 +67,6 @@ var seekerbackup = async (req, res) => {
                     as: "seeker_review_data"
                 }
             },
-            // { $unwind: "$seeker_review_data" },
-            // {
-            //     $match: {
-
-            //     }
-            // },
             {
                 $project: {
                     _id: 0
@@ -89,8 +82,6 @@ var seekerbackup = async (req, res) => {
 }
 
 // Special Case Try 
-
-
 
 var seekercontact = async (req, res) => {
     try {
@@ -120,7 +111,6 @@ var signup = async (req, res) => {
                     const salt = await bcrypt.genSalt(12);
                     const secPass = await bcrypt.hash(req.body.js_pwd, salt);
                     const secCPass = await bcrypt.hash(req.body.js_cpwd, salt);
-                    // const token = await jwt.sign(Tbl_js_signup.id, process.env.SECRETE_KEY);
                     const data = await Tbl_js_signup.create({
                         js_id: abc,
                         js_name: req.body.js_name,
@@ -151,14 +141,10 @@ var signup = async (req, res) => {
                             }
                         })
                     }
-
                     console.log(data);
                     if (data) {
-                        // await mailsendsignup(js_email, js_pwd, js_mno)
                         res.status(200).send({ status: 200, data: data, msg: " Inserted successfully..." });
                     }
-
-
                 } else {
                     return res.json({ status: 400, err: "Pass & cpass must be same" })
                 }
@@ -171,7 +157,6 @@ var signup = async (req, res) => {
         return res.json({ status: 400, err: "Something is wrong" })
     }
 }
-
 var signin = async (req, res) => {
     try {
         let token;
@@ -187,9 +172,6 @@ var signin = async (req, res) => {
                         const passMatch = await bcrypt.compare(js_pwd, user.js_pwd);
                         console.log(passMatch)
                         if (js_email === user.js_email && passMatch) {
-                            // token = await user.generateToken();
-                            // res.cookie('jwtseeker', token, { expires: new Date(Date.now() + 25892000000), httpOnly: true });
-                            // console.log(`Token thay gayu 6 :- ${user.token}`);
                             const token = jwt.sign({ id: user._id }, process.env.SECRETE_KEY)
                             if (user.js_skill == null) {
 
@@ -208,8 +190,6 @@ var signin = async (req, res) => {
                         return res.json({ status: 400, err: "User not register" })
                     }
                 }
-                // console.log(user)
-
             } else {
                 console.log("User Not Exist ")
                 res.status(400).send({ status: 8, err: "Please Create Your Account First " })
@@ -230,14 +210,14 @@ const sekdeleteaccount = async (req, res) => {
         const id = req.user.id
         const match = await Tbl_js_signup.findById({ _id: id });
         if (match) {
-            const passMatch = await bcrypt.compare(req.body.rec_pwd, match.js_pwd);
-            if (passMatch) {
-                const recdel = await Tbl_js_signup.findByIdAndDelete({ _id: id });
-                recdel.save()
-                res.status(201).send({ msg: "Recruiter Account Deleted" })
-            } else {
-                res.status(400).send("Password Not Match")
-            }
+
+            const recdel = await Tbl_js_signup.findByIdAndDelete({ _id: id });
+            const appdel = await Tbl_jobapply.findOneAndDelete({ js_id: id })
+            const revdel = await Tbl_js_review.findOneAndDelete({ seeker_id: id })
+            const condel = await Tbl_js_contact.findOneAndDelete({ seeker_id: id })
+            const otpdel = await seekerotp.findOneAndDelete({ js_email: match.js_email })
+            res.status(201).send({ msg: "Recruiter Account Deleted", status: 201 })
+
         } else {
             res.status(400).send("User Not Exist ")
         }
@@ -253,9 +233,7 @@ var getseeker = async (req, res) => {
 
 var updateprofile = async (req, res) => {
     try {
-        // console.log("hii")
         const id = req.user.id
-        // console.log(id)
         const usermatch = await Tbl_js_signup.findById({ _id: id })
         if (usermatch) {
             const updateUser = await Tbl_js_signup.findByIdAndUpdate({ _id: id }, {
@@ -275,10 +253,8 @@ var updateprofile = async (req, res) => {
 
 // Profile Picture Update
 var updateimage = async (req, res) => {
-
     try {
         console.log(req.user.id)
-        // console.log(`file ==>${req.file.filename}`)
         let body = req.body
         body = req?.file?.filename
         console.log(`jainam image ===>${body}`)
@@ -303,23 +279,11 @@ var updateimage = async (req, res) => {
         console.log(`Error from the Image upload ===> ${error}`)
         res.status(400).json({ error: "There is some error" });
         console.log(error);
-        // let url = req.files.filename;
-        // const imageUrl = `./public/uploads1/seekerprofile/${url}`;
-        // console.log("image url===>", imageUrl);
-        // await fs.unlinkSync(imageUrl);
+        let url = req.files.filename;
+        const imageUrl = `./public/uploads1/seekerprofile/${url}`;
+        console.log("image url===>", imageUrl);
+        await fs.unlinkSync(imageUrl);
     }
-
-    //     if (match) {
-    //         console.log("Match")
-    //         const updatePic = await Tbl_js_signup.findByIdAndUpdate(
-    //             { _id: req.user.id },
-    //             {
-    //                 $set: {
-    // js_profile
-    //                 }
-    //             }
-    //         )
-    //     }
 }
 
 var js_contact = async (req, res) => {
@@ -408,12 +372,11 @@ const getjobpost = async (req, res) => {
     const sort = req.query.sort || ""
     console.log("salaRY RANGE ", salaryrange)
     console.log("job type", jobtype)
-    // console.log("timming", JSON.stringify(sort))
     console.log("timming", sort)
     const query = {
         isDeleted: true,
         jobtitle: {
-            $regex: search//, $option: 'i'
+            $regex: search
         }
     }
     if (gender) {
@@ -462,10 +425,8 @@ var applyjob = async (req, res) => {
         const rec_id = req.params.id
         const js_id = req.user.id
         console.log(js_id)
-        // console.log(req.from.filename)
         const resume = req.file.filename
         console.log('out of condition ')
-        // const resume = req.body.resume
         const aplydata = new Tbl_jobapply({ js_id, rec_id, resume })
         if (js_id && rec_id && resume) {
             console.log('into condition ')
@@ -595,7 +556,7 @@ var jobhistory = async (req, res) => {
     try {
         const id = req.user.id
 
-        const data = await Tbl_jobapply.find({ js_id: id, show: null }, { show: 0 }).populate('rec_id')
+        const data = await Tbl_jobapply.find({ js_id: id, show: true }, { show: 0 }).populate('rec_id')
 
         res.status(201).send(data)
         console.log(data);
@@ -608,7 +569,7 @@ var jobhistoryaccept = async (req, res) => {
     try {
         const id = req.user.id
 
-        const data = await Tbl_jobapply.find({ js_id: id, show: null, accept: 1 }, { show: 0 }).populate('rec_id')
+        const data = await Tbl_jobapply.find({ js_id: id, show: true, accept: 1 }, { show: 0 }).populate('rec_id')
 
         res.status(201).send(data)
         console.log(data);
@@ -621,7 +582,7 @@ var jobhistoryreject = async (req, res) => {
     try {
         const id = req.user.id
 
-        const data = await Tbl_jobapply.find({ js_id: id, show: null, accept: 2 }, { show: 0 }).populate('rec_id')
+        const data = await Tbl_jobapply.find({ js_id: id, show: true, accept: 2 }, { show: 0 }).populate('rec_id')
 
         res.status(201).send(data)
         console.log(data);
@@ -629,7 +590,6 @@ var jobhistoryreject = async (req, res) => {
         console.log(`Error from the jobhistory catch :- ${error}`)
     }
 }
-
 //  Seeker Job Apply Backup 
 
 var jobbackup = async (req, res) => {
@@ -640,8 +600,7 @@ var jobbackup = async (req, res) => {
         const match = await Tbl_jobapply.findById({ _id: id }).populate('js_id')
         console.log(match)
         if (match) {
-            // console.log("match")
-            const newapply = await Tbl_jobapply.findByIdAndUpdate({ _id: id }, { show: 1 }, { new: true })
+            const newapply = await Tbl_jobapply.findByIdAndUpdate({ _id: id }, { $set: { show: false } }, { new: true })
             newapply.save();
             res.status(201).send({ status: 201, newapply })
             console.log(newapply)
@@ -663,8 +622,7 @@ var jobapplyrestore = async (req, res) => {
         const match = await Tbl_jobapply.findById({ _id: id }).populate('js_id')
         console.log(match)
         if (match) {
-            // console.log("match")
-            const newapply = await Tbl_jobapply.findByIdAndUpdate({ _id: id }, { show: null }, { new: true })
+            const newapply = await Tbl_jobapply.findByIdAndUpdate({ _id: id }, { show: true }, { new: true })
             newapply.save();
             res.status(201).send({ status: 201, newapply })
             console.log(newapply)
@@ -680,12 +638,10 @@ var jobapplyrestore = async (req, res) => {
 
 // Seeker job restore
 var restorejob = async (req, res) => {
-    // console.log(`out of try ===>${req.user.id}`)
     try {
         const id = req.user.id
         const data = await Tbl_jobapply.find({ js_id: id, show: { $ne: null } }, { show: 0 }).populate('rec_id').populate('js_id')
         res.status(201).send(data)
-        // console.log(data);
     } catch (error) {
         console.log(`Error from the jobhistory catch :- ${error}`)
     }
@@ -700,17 +656,13 @@ var seekerapplydel = async (req, res) => {
         const match = await Tbl_jobapply.findById({ _id: id }).populate('js_id')
         console.log(match)
         if (match) {
-            // console.log("match")
             const newapply = await Tbl_jobapply.findByIdAndDelete({ _id: id })
-
             res.status(201).send({ status: 201, msg: "Application Deleted Successfull" })
             console.log(newapply)
         } else {
             res.status(401).send({ status: 401, err: "Not Backup" })
             console.log("not")
         }
-
-
     } catch (error) {
         console.log(`Error from the job delete :- ${error}`)
     }
@@ -721,12 +673,9 @@ var Changepassword = async (req, res) => {
     try {
         const { oldpwd, updatedpass, updateconpass } = req.body
         console.log(req.body)
-        // console.log("chal saru kr password change karvanu ")
         console.log(req.user.id);
         const match = await Tbl_js_signup.findById({ _id: req.user.id })
-
         if (match) {
-            // console.log("matched")
             console.log(req.body.oldpwd)
             const passverify = await bcrypt.compare(oldpwd, match.js_pwd)
             if (passverify) {
@@ -768,8 +717,6 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-
-
 var jobdetail = async (req, res) => {
 
 }
@@ -794,7 +741,6 @@ const reccontact = async (req, res) => {
 var cmpupdatelogo = async (req, res) => {
     try {
         console.log(req.user._id)
-        // console.log(`file ==>${req.file.filename}`)
         let body = req.body
         body = req?.file?.filename
         console.log(`jainam image ===>${body}`)
@@ -819,6 +765,11 @@ var cmpupdatelogo = async (req, res) => {
         console.log(`Error from the Image upload ===> ${error}`)
         res.status(400).json({ error: "There is some error" });
         console.log(error);
+        let url = req.files.filename;
+        const imageUrl = `./public/uploads1/companylogo/${url}`;
+        console.log("image url===>", imageUrl);
+        await fs.unlinkSync(imageUrl);
+
     }
 }
 
@@ -950,22 +901,14 @@ const cmpLogin = async (req, res) => {
 
 const recdeleteaccount = async (req, res) => {
     try {
-        // const id = req.user._id
-        // console.log('rec delete id', id);
         const match = await Tbl_rec_signup.findById({ _id: req.user._id });
         console.log("matched ", match)
         if (match) {
-            // const passMatch = await bcrypt.compare(req.body, match.cmp_pwd);
-            // console.log(passMatch)
-            // if (passMatch) {
             const recdel = await Tbl_rec_signup.findByIdAndDelete({ _id: req.user._id });
             const recpost = await Tbl_jobpost.findOneAndDelete({ postedby: req.user._id })
             const reccon = await tbl_rec_contact.findOneAndDelete({ rec_id: req.user._id })
             const review = await Tbl_rec_review.findOneAndDelete({ recruiter_id: req.user._id })
-            res.status(201).send({ msg: "Recruiter Account Deleted" })
-            // } else {
-            //     res.status(400).send("Password Not Match")
-            // }
+            res.status(201).send({ msg: "Recruiter Account Deleted", status: 201 })
         } else {
             res.status(400).send("User Not Exist ")
         }
@@ -1017,92 +960,52 @@ const checkpayment = async (req, res) => {
     }
 }
 
-// 10/3/2022
-// const jobpost = async (req, res) => {
-//     try {
-//         console.log('rec is=====> ', req.user.id)
-//         const data = await tbl_payment.findOne({ paymentby: req.user.id });
-//         console.log("paymetn==-====>", data)
-//         const { jobtitle, gender, designation, salaryrange, vacancy, experience, jobtype, qualification, degree, skill, languageknown, interviewtype, description } = req.body;
-//         if (jobtitle && gender && designation && salaryrange && vacancy && experience && jobtype && qualification && skill && languageknown && interviewtype && description && degree) {
-//             if (data.packagename == "PLATINUM" && data.jobpostcount >= 4) {
-//                 res.send({ status: 400, msg: "your jobpost limit over in PLATINUM package" })
-//             }
-//             else if (data.packagename == "GOLD" && data.jobpostcount >= 2) {
-//                 res.send({ status: 400, msg: "your jobpost limit over in GOLD package" })
-//             }
-//             else if (data.packagename == "SILVER" && data.jobpostcount >= 1) {
-//                 res.send({ status: 400, msg: "your jobpost limit over in SILVER package" })
-//             }
-//             else {
-//                 const newJobPost = await Tbl_jobpost.create({
-//                     postedby: req.user._id,
-//                     jobtitle: jobtitle, 
-//                     gender: gender,
-//                     designation: designation,
-//                     degree: degree,
-//                     salaryrange: salaryrange,
-//                     vacancy: vacancy,
-//                     experience: experience,
-//                     jobtype: jobtype,
-//                     qualification: qualification,
-//                     skill: skill,
-//                     languageknown: languageknown,
-//                     interviewtype: interviewtype,
-//                     description: description
-//                 });
-//                 await tbl_payment.findOneAndUpdate({ paymentby: req.user.id }, { $inc: { jobpostcount: 1 } }, { new: true });
-//                 res.send({ status: 200, msg: "Job Post Successfully" })
-//             }
-
-//         } else {
-//             console.log("All Fileds Are Required!!")
-//             res.send("All Fileds Are Required!!")
-//         }
-
-//     } catch (error) {
-//         console.log(`Error in Job Post ${error}`)
-//         res.send(`something wrong`);
-//     }
-// }
-
 const jobpost = async (req, res) => {
     try {
         const data = await tbl_payment.findOne({ paymentby: req.user.id });
         const { jobtitle, gender, designation, salaryrange, vacancy, experience, jobtype, qualification, degree, skill, languageknown, interviewtype, description } = req.body;
 
         if (jobtitle && gender && designation && salaryrange && vacancy && experience && jobtype && qualification && skill && languageknown && interviewtype && description && degree) {
+            const profile = await Tbl_rec_signup.findById({ _id: req.user.id })
+            if (profile.employess) {
 
-            if (data.packagename == "PLATINUM" && data.jobpostcount >= 4) {
-                res.send({ status: 400, msg: "your jobpost limit over in PLATINUM package" })
-            }
-            else if (data.packagename == "GOLD" && data.jobpostcount >= 2) {
-                res.send({ status: 400, msg: "your jobpost limit over in GOLD package" })
-            }
-            else if (data.packagename == "SILVER" && data.jobpostcount >= 1) {
-                res.send({ status: 400, msg: "your jobpost limit over in SILVER package" })
-            }
-            else {
-                const newJobPost = await Tbl_jobpost.create({
-                    postedby: req.user._id,
-                    jobtitle: jobtitle,
-                    gender: gender,
-                    designation: designation,
-                    degree: degree,
-                    salaryrange: salaryrange,
-                    vacancy: vacancy,
-                    experience: experience,
-                    jobtype: jobtype,
-                    qualification: qualification,
-                    skill: skill,
-                    languageknown: languageknown,
-                    interviewtype: interviewtype,
-                    description: description
-                });
-                await tbl_payment.findOneAndUpdate({ paymentby: req.user.id }, { $inc: { jobpostcount: 1 } }, { new: true });
-                res.send({ status: 200, msg: "Job Post Successfully" })
-            }
 
+                if (data) {
+                    if (data.packagename == "PLATINUM" && data.jobpostcount >= 4) {
+                        res.send({ status: 400, msg: "your jobpost limit over in PLATINUM package" })
+                    }
+                    else if (data.packagename == "GOLD" && data.jobpostcount >= 2) {
+                        res.send({ status: 400, msg: "your jobpost limit over in GOLD package" })
+                    }
+                    else if (data.packagename == "SILVER" && data.jobpostcount >= 1) {
+                        res.send({ status: 400, msg: "your jobpost limit over in SILVER package" })
+                    }
+                    else {
+                        const newJobPost = await Tbl_jobpost.create({
+                            postedby: req.user._id,
+                            jobtitle: jobtitle,
+                            gender: gender,
+                            designation: designation,
+                            degree: degree,
+                            salaryrange: salaryrange,
+                            vacancy: vacancy,
+                            experience: experience,
+                            jobtype: jobtype,
+                            qualification: qualification,
+                            skill: skill,
+                            languageknown: languageknown,
+                            interviewtype: interviewtype,
+                            description: description
+                        });
+                        await tbl_payment.findOneAndUpdate({ paymentby: req.user.id }, { $inc: { jobpostcount: 1 } }, { new: true });
+                        res.send({ status: 200, msg: "Job Post Successfully" })
+                    }
+                } else {
+                    res.status(400).send({ msg: "YOu have not Buy Any Subscription Please Buy!", status: 100 })
+                }
+            } else {
+                res.status(400).send({ msg: "Please Complete your Profile First!", status: 101 })
+            }
         } else {
             console.log("All Fileds Are Required!!")
             res.send("All Fileds Are Required!!")
@@ -1167,12 +1070,7 @@ const deletejobPost = async (req, res) => {
 
 const trashgetOwnJobpost = async (req, res) => {
     try {
-        // console.log(req.cmpid);
-        // const recd = 
-        // console.log(`Get own job post id :- ${recd}`);
-
         const response = await Tbl_jobpost.find({ postedby: req.user._id, isDeleted: { $ne: true } })//.sort(created = -1);//.select('-postedby');
-        // console.log(response)
         res.send(response);
     } catch (error) {
         console.log(error);
@@ -1209,7 +1107,6 @@ const updatejob = async (req, res) => {
             const result = await Tbl_jobpost.findByIdAndUpdate({ _id: updateid }, {
                 $set: bodydata
             })
-            // await result.save();
             res.send({ message: 'job update success', status: 200 })
         }
     } catch (error) {
@@ -1364,19 +1261,16 @@ var recchangepassword = async (req, res) => {
 var manageindustry = async (req, res) => {
     try {
         const data = await Tbl_industry.find({})
-        // const result = await data.json()
         res.status(201).send(data)
     } catch (error) {
         console.log(`Error from the manageindustry :- ${error}`)
     }
 }
 
-
 const getappliedUser = async (req, res) => {
     try {
         console.log(req.user._id);
-        const response = await Tbl_jobapply.find({ rec_id: req.user._id }).populate('js_id');
-        // console.log(response)
+        const response = await Tbl_jobapply.find({ rec_id: req.user._id, show: true }).populate('js_id');
         const result = await response.filter((item) => item.accept == 0)
         res.send(result);
     } catch (error) {
@@ -1388,7 +1282,6 @@ const AcceptUserList = async (req, res) => {
     try {
         console.log(req.user._id);
         const response = await Tbl_jobapply.find({ rec_id: req.user._id }).populate('js_id');
-        // console.log(response)
         const result = await response.filter((item) => item.accept == 1)
         res.send(result);
         console.log("result----->", result)
@@ -1402,7 +1295,6 @@ const RejectUserList = async (req, res) => {
     try {
         console.log(req.user._id);
         const response = await Tbl_jobapply.find({ rec_id: req.user._id }).populate('js_id');
-        // console.log(response)
         const result = await response.filter((item) => item.accept == 2)
         res.send(result);
     } catch (error) {
@@ -1412,9 +1304,7 @@ const RejectUserList = async (req, res) => {
 
 
 const acceptRequest = async (req, res) => {
-    // const jobid = req.body
     const jobid = req.params.id;
-    console.log("id---------->", jobid)
     try {
         const result = await Tbl_jobapply.findByIdAndUpdate({ _id: jobid }, { accept: 1 });
         await result.save();
@@ -1450,9 +1340,9 @@ var acceptmail = async (req, res) => {
         console.log(`Error from the accept mail send :==> ${error}`)
     }
 }
+
 const rejectRequest = async (req, res) => {
     const jobid = req.params.id;
-    console.log("id---------->", jobid)
     try {
         const result = await Tbl_jobapply.findByIdAndUpdate({ _id: jobid }, { accept: 2 });
         await result.save();
@@ -1463,7 +1353,6 @@ const rejectRequest = async (req, res) => {
     }
 
 }
-
 
 const recruiterreview = async (req, res) => {
     try {
@@ -1528,9 +1417,7 @@ var location = async (req, res) => {
 var exportcsv = async (req, res) => {
     try {
         const token = req.params.token
-        console.log("id from the export", token)
         const id = jwt.verify(token, process.env.SECRETE_KEY);
-        console.log('id', id.cmpid)
         const result = await Tbl_jobapply.find({ rec_id: id.cmpid }, { accept: 1 }).populate("js_id");
         const csvStream = csv.format({ headers: true })
         if (!fs.existsSync("public/files/export")) {
@@ -1576,8 +1463,6 @@ const order = (req, res) => {
     var options = {
         amount: req.body.amount * 100,  // amount in the smallest currency unit
         currency: "INR",
-        // packagename: req.body.packagename
-        // receipt: "order_rcptid_11"
     };
     instance.orders.create(options, function (err, order) {
         if (err) {
@@ -1588,7 +1473,6 @@ const order = (req, res) => {
         }
     });
 }
-
 
 const verify = async (req, res) => {
     try {
@@ -1636,7 +1520,6 @@ var seekercon = async (req, res) => {
     }
 }
 
-
 var recruitercon = async (req, res) => {
     try {
         const pay = await tbl_rec_contact.find({}).populate('rec_id');
@@ -1675,7 +1558,6 @@ var reclist = async (req, res) => {
 var seekerlist = async (req, res) => {
     try {
         const data = await Tbl_js_signup.find({}, { js_name: 1, js_email: 1, js_mno: 1, isBlock: 1 }).limit(10);
-        // const data = await Tbl_jobapply.find({ accept: 1 }).populate("js_id");
         res.status(201).send(data)
     } catch (error) {
         console.log(`Error from the Recruiterlist :- ${error}`)
@@ -1685,13 +1567,11 @@ var seekerlist = async (req, res) => {
 var seeklist = async (req, res) => {
     try {
         const data = await Tbl_js_signup.find({});
-        // const data = await Tbl_jobapply.find({ accept: 1 }).populate("js_id");
         res.status(201).send(data)
     } catch (error) {
         console.log(`Error from the Recruiterlist :- ${error}`)
     }
 }
-
 
 var totalrecruiterlist = async (req, res) => {
     try {
@@ -1705,7 +1585,6 @@ var totalrecruiterlist = async (req, res) => {
 var totalseekerlist = async (req, res) => {
     try {
         const data = await Tbl_js_signup.find({}, { js_name: 1, js_email: 1, js_mno: 1 });
-        // const data = await Tbl_jobapply.find({ accept: 1 }).populate("js_id");
         res.status(201).send(data)
     } catch (error) {
         console.log(`Error from the Recruiterlist :- ${error}`)
@@ -1787,32 +1666,6 @@ var adSignin = async (req, res) => {
         console.log(error)
         res.status(400).send({ error: `Error from the Admin signin --->>>${error}` })
     }
-    // try {
-    //     let token;
-    //     const { adotp } = req.body;
-    //     if (adotp) {
-    //         const user = await adminotp.findOne({ otp: adotp });
-    //         console.log(user)
-    //         if (user != null) {
-    //             // const passMatch = await bcrypt.compare(adminpwd, user.adminpwd);
-    //             if (otp === user.otp) {
-    //                 //  && passMatch) {
-
-    //                 const token = jwt.sign({ id: user._id }, process.env.SECRETE_KEY)
-
-    //                 res.json({ status: 201, msg: "OPT Send on Your Email", tok: token });
-    //             } else {
-    //                 return res.json({ status: 400, err: "Invalid Credential" })
-    //             }
-    //         } else {
-    //             return res.json({ status: 400, err: "Admin not Available" })
-    //         }
-    //     } else {
-    //         return res.json({ status: 400, err: "All fields required" })
-    //     }
-    // } catch (er) {
-    //     console.log(`Error ${er}`);
-    // }
 }
 
 var addindustry = async (req, res) => {
@@ -1857,19 +1710,15 @@ var getseekercon = async (req, res) => {
 
 var sendotp = async (req, res) => {
     const { adminemail } = req.body
-    console.log(adminemail)
     if (!adminemail) res.status(400).send({ error: "Please Enter Your Email" });
     try {
         const preuser = await Tbl_admin.findOne({ adminemail: req.body.adminemail });
-        console.log(`preuser->${preuser}`)
         if (preuser) {
             const OTP = Math.floor(100000 + Math.random() * 900000)
             console.log(`otp==> ${OTP}`)
             const existEmail = await Otp.findOne({ adminemail: adminemail })
-            console.log(`exist user==> ${existEmail}`);
             if (existEmail) {
                 const updateData = await Otp.findByIdAndUpdate({ _id: existEmail._id }, { otp: OTP }, { new: true })
-
                 await updateData.save();
                 const mailOption = {
                     from: process.env.EMAIL,
@@ -1909,8 +1758,6 @@ var sendotp = async (req, res) => {
                         await res.status(201).json({ info, status: 201 })
                     }
                 })
-                // console.log(`new =>>>${saveOtpData}`)
-
             }
         } else {
             res.status(400).send({ error: "This user is not exist " });
@@ -1983,7 +1830,6 @@ var jobs = async (req, res) => {
 }
 
 const download = () => {
-    // const newobj = req.body
     pdf.create(pdfTemplate(req.body), {}).toFile('rezultati.pdf', (err) => {
         if (err) return console.log('error');
         res.send(Promise.resolve())
