@@ -4,7 +4,7 @@ const port = process.env.PORT || 5000;
 const cors = require("cors");
 const path = require("path")
 app.use(express.json());
-const option = { origin: "*" };
+const option = { origin: "*", Proxy: "https://jobshubback-19af.onrender.com" };
 app.use(cors(option));
 const dotenv = require("dotenv");
 dotenv.config({ path: "./config.env" });
