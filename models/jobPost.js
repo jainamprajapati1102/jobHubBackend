@@ -47,7 +47,7 @@ const jobPostSchema = new mongoose.Schema({
     postedby: {
         type: mongoose.Schema.Types.ObjectId, ref: 'Tbl_rec_signup'
     },
-    isDeleted: { type: String, default: null }
+    isDeleted: { type: String, default: true }
 }, { timestamps: true })
 
 
