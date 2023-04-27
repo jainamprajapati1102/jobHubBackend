@@ -1302,7 +1302,6 @@ const RejectUserList = async (req, res) => {
     }
 }
 
-
 const acceptRequest = async (req, res) => {
     const jobid = req.params.id;
     try {

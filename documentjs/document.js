@@ -197,7 +197,7 @@ module.exports = ({ js_name, js_email, js_mno, js_skill, js_experience, js_exp_c
                             <span class="phone-val">${js_mno}</span>
                         </div>
                     </div>
-                    <img src="http://localhost:5000/public/uploads1/seekerprofile/${js_profile}" alt="Jainam Prajapati" class="img">
+                    <img src="https://jobshubback-19af.onrender.com/public/uploads1/seekerprofile/${js_profile}" alt="Jainam Prajapati" class="img">
     
                 </div>
                 <div class="about">
