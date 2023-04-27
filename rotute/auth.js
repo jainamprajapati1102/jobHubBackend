@@ -1436,6 +1436,7 @@ var exportcsv = async (req, res) => {
 
         if (result.length > 0) {
             result.map((user) => {
+                console.log(user)
                 csvStream.write({
                     Name: user.js_id.js_name ? user.js_id.js_name : "-",
                     EmailId: user.js_id.js_email ? user.js_id.js_email : "-",
@@ -1830,7 +1831,7 @@ var jobs = async (req, res) => {
 }
 
 const download = () => {
-    pdf.create(pdfTemplate(req.body), {childProcessOptions: { env: { OPENSSL_CONF: '/dev/null' } } }).toFile('rezultati.pdf', (err) => {
+    pdf.create(pdfTemplate(req.body), { childProcessOptions: { env: { OPENSSL_CONF: '/dev/null' } } }).toFile('rezultati.pdf', (err) => {
         if (err) return console.log('error');
         res.send(Promise.resolve())
     });
