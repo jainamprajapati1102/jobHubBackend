@@ -1830,7 +1830,11 @@ var jobs = async (req, res) => {
 }
 
 const download = () => {
-    pdf.create(pdfTemplate(req.body), {}).toFile('rezultati.pdf', (err) => {
+    pdf.create(pdfTemplate(req.body), {
+        env: {
+          OPENSSL_CONF: '/dev/null',
+        },
+      }).toFile('rezultati.pdf', (err) => {
         if (err) return console.log('error');
         res.send(Promise.resolve())
     });
